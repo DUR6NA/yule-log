@@ -1,0 +1,185 @@
+# Every push to main builds Yule Log for Windows, Linux and macOS and publishes
+# the installers as a GitHub release.
+#
+# Version numbers: the major.minor in src-tauri/tauri.conf.json is yours to
+# bump, and the patch is the build number. So with "1.0.0" in the config,
+# build #27 ships as 1.0.27 and gets the tag v1.0.27.
+
+name: Build & release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push makes an unfinished build pointless; don't burn minutes on it.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Pick a version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: pick
+        run: |
+          base=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          version="$(echo "$base" | cut -d. -f1-2).${{ github.run_number }}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "### 🔥 Building Yule Log $version" >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Build (${{ matrix.name }})
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            args: --bundles nsis
+            files: |
+              src-tauri/target/release/bundle/nsis/*-setup.exe
+
+          - name: Linux
+            # The oldest supported Ubuntu, so the .deb and AppImage run on older glibc too.
+            os: ubuntu-22.04
+            args: --bundles deb,rpm,appimage
+            files: |
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/rpm/*.rpm
+              src-tauri/target/release/bundle/appimage/*.AppImage
+
+          - name: macOS
+            # One universal app for Apple Silicon and Intel Macs.
+            os: macos-latest
+            args: --target universal-apple-darwin --bundles app,dmg
+            files: |
+              src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Add both Mac CPU targets
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+          key: ${{ matrix.name }}
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - run: npm ci
+
+      - name: Stamp version ${{ env.VERSION }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const file = "src-tauri/tauri.conf.json";
+            const config = JSON.parse(fs.readFileSync(file, "utf8"));
+            config.version = process.env.VERSION;
+            fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
+          '
+
+      - name: Build installers
+        run: npx tauri build ${{ matrix.args }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: yule-log-${{ env.VERSION }}-${{ matrix.name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish release
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: yule-log-*
+          path: dist
+          merge-multiple: true
+
+      - name: Name the files
+        run: |
+          shopt -s globstar nullglob
+          mkdir upload
+          for f in dist/**/*.{exe,deb,rpm,AppImage,dmg}; do
+            name=$(basename "$f")
+            cp "$f" "upload/${name// /-}"
+          done
+          ls -la upload
+
+      - name: Write release notes
+        run: |
+          cd upload
+          pick() { ls | grep -E "$1" | head -1; }
+          link() { echo "[\`$1\`](https://github.com/$GH_REPO/releases/download/v$VERSION/$1)"; }
+          cat > ../notes.md <<EOF
+          ## 🔥 Fresh firewood
+
+          | Your computer | Grab this |
+          | --- | --- |
+          | 🪟 Windows 10/11 | $(link "$(pick 'setup\.exe$')") |
+          | 🍎 macOS (Apple Silicon + Intel) | $(link "$(pick '\.dmg$')") |
+          | 🐧 Debian / Ubuntu | $(link "$(pick '\.deb$')") |
+          | 🎩 Fedora / openSUSE | $(link "$(pick '\.rpm$')") |
+          | 📦 Any Linux | $(link "$(pick '\.AppImage$')") |
+
+          Built from \`${GITHUB_SHA::7}\`. You still need a local model to burn; see the README.
+
+          > **Mac:** the app isn't notarized. If macOS says it's damaged, run \`xattr -cr "/Applications/Yule Log.app"\` once.
+
+          EOF
+          cat ../notes.md
+
+      - name: Publish v${{ env.VERSION }}
+        run: |
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            # A re-run of the same build: refresh the files instead of failing.
+            gh release upload "v$VERSION" upload/* --clobber
+          else
+            gh release create "v$VERSION" upload/* \
+              --target "$GITHUB_SHA" \
+              --title "Yule Log $VERSION" \
+              --notes-file notes.md \
+              --generate-notes
+          fi
+          echo "🎁 [Yule Log $VERSION](https://github.com/$GH_REPO/releases/tag/v$VERSION) is out" >> "$GITHUB_STEP_SUMMARY"

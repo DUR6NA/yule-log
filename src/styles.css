@@ -1,0 +1,718 @@
+:root {
+  --soot: #0e0806;
+  --ink: rgb(255 255 255 / 0.94);
+  --ink-dim: rgb(255 255 255 / 0.62);
+  --ink-faint: rgb(255 255 255 / 0.4);
+  --ember: #ffb066;
+  --alert: #ffc58f;
+
+  --heat: 0; /* 0..1, set from the fire every few frames */
+
+  --font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--soot);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+body.idle {
+  cursor: none;
+}
+
+p,
+h2,
+figure {
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(255 200 140 / 0.9);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+svg {
+  display: block;
+}
+
+/* ------------------------------------------------------------------ the fire */
+
+#hearth {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hearth-fallback {
+  display: none;
+}
+
+body.no-webgl #hearth {
+  display: none;
+}
+
+body.no-webgl .hearth-fallback {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 40% 35% at 50% 78%, rgb(255 140 50 / calc(0.15 + var(--heat) * 0.6)), transparent 70%),
+    radial-gradient(ellipse 70% 60% at 50% 90%, rgb(140 40 10 / calc(0.1 + var(--heat) * 0.4)), transparent 75%),
+    var(--soot);
+}
+
+/* ------------------------------------------------------------- liquid glass */
+
+/* Thick, clear glass: the backdrop bends at the rim (see glass.js), blurs a
+   little, and catches light along a bevelled edge. */
+.glass {
+  --radius: 22px;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.03) 52%, rgb(255 255 255 / 0.06));
+  -webkit-backdrop-filter: blur(12px) saturate(1.7) brightness(1.06);
+  backdrop-filter: blur(12px) saturate(1.7) brightness(1.06);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.4),
+    inset 0 -1px 1px rgb(255 255 255 / 0.1),
+    inset 0 0 22px rgb(255 150 70 / calc(var(--heat) * 0.14)),
+    0 14px 34px -12px rgb(0 0 0 / 0.75),
+    0 2px 6px rgb(0 0 0 / 0.3);
+  isolation: isolate;
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    140deg,
+    rgb(255 255 255 / 0.6),
+    rgb(255 255 255 / 0.1) 28%,
+    rgb(255 255 255 / 0) 50%,
+    rgb(255 255 255 / 0.08) 72%,
+    rgb(255 255 255 / 0.38)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- thermometer */
+
+.thermometer {
+  --radius: 30px;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 64px;
+  padding: 6px 4px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.thermometer svg {
+  overflow: visible;
+}
+
+.thermometer .scale {
+  font: 600 7.5px/1 var(--font);
+  fill: rgb(255 255 255 / 0.72);
+  font-variant-numeric: tabular-nums;
+}
+
+.thermometer .scale-unit {
+  font: 700 6.5px/1 var(--font);
+  fill: rgb(255 255 255 / 0.5);
+}
+
+.thermometer .tick {
+  stroke: rgb(255 255 255 / 0.55);
+  stroke-width: 0.7;
+}
+
+.thermometer .tick.major {
+  stroke: rgb(255 255 255 / 0.85);
+  stroke-width: 0.9;
+}
+
+.thermometer .column {
+  transition: transform 1.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.thermometer .liquid {
+  filter: drop-shadow(0 0 2.5px rgb(255 60 40 / calc(0.35 + var(--heat) * 0.5)));
+}
+
+.thermometer figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+}
+
+.thermometer .btu {
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+.thermometer .unit {
+  font-size: 8.5px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+
+/* ---------------------------------------------------------------------- dock */
+
+.dock {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  translate: -50% 0;
+  height: 46px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition:
+    opacity 0.5s ease,
+    translate 0.5s ease;
+}
+
+body.idle .dock,
+body.idle .notice {
+  opacity: 0;
+  translate: -50% 10px;
+  pointer-events: none;
+}
+
+.light {
+  height: 36px;
+  padding: 0 15px 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 18px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #fff;
+  background: linear-gradient(180deg, rgb(255 168 92 / 0.95), rgb(232 92 32 / 0.92));
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.55),
+    inset 0 -1px 1px rgb(120 30 0 / 0.35),
+    0 4px 14px -4px rgb(255 110 40 / 0.7);
+  text-shadow: 0 1px 1px rgb(120 30 0 / 0.45);
+  transition:
+    background 0.3s,
+    box-shadow 0.3s,
+    filter 0.15s;
+}
+
+.light:hover {
+  filter: brightness(1.08);
+}
+
+.light:active {
+  filter: brightness(0.94);
+}
+
+.light:disabled {
+  cursor: progress;
+  filter: saturate(0.6);
+}
+
+.light .icon {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.light .snuff,
+body.is-running .light .flame {
+  display: none;
+}
+
+body.is-running .light .snuff {
+  display: block;
+}
+
+body.is-running .light {
+  background: rgb(255 255 255 / 0.13);
+  box-shadow:
+    inset 0 1px 0.5px rgb(255 255 255 / 0.3),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  text-shadow: none;
+}
+
+body.is-running .light:hover {
+  background: rgb(255 255 255 / 0.2);
+  filter: none;
+}
+
+.readout {
+  min-width: 156px;
+  max-width: 250px;
+  padding: 0 8px 0 6px;
+}
+
+.status,
+.detail {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status {
+  font-size: 12.5px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+.detail {
+  font-size: 11px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+body[data-error] .status {
+  color: var(--alert);
+}
+
+.divider {
+  width: 1px;
+  height: 22px;
+  margin: 0 2px;
+  background: rgb(255 255 255 / 0.14);
+}
+
+.chip,
+.icon-button {
+  height: 34px;
+  border: 0;
+  border-radius: 17px;
+  background: transparent;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.chip:hover,
+.icon-button:hover,
+.chip:popover-open,
+.chip[aria-expanded='true'],
+.icon-button[aria-expanded='true'] {
+  background: rgb(255 255 255 / 0.12);
+}
+
+.chip {
+  gap: 6px;
+  padding: 0 11px 0 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip .icon,
+.icon-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-button {
+  width: 34px;
+}
+
+.icon-button .gear {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.9;
+}
+
+.icon-button.small {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+
+.icon-button.small svg {
+  width: 12px;
+  height: 12px;
+}
+
+#fullscreen .collapse,
+body.fullscreen #fullscreen .expand {
+  display: none;
+}
+
+body.fullscreen #fullscreen .collapse {
+  display: block;
+}
+
+body.preview #fullscreen,
+body.preview #settings-button {
+  display: none;
+}
+
+/* --------------------------------------------------------------------- notice */
+
+.notice {
+  --radius: 16px;
+  position: fixed;
+  left: 50%;
+  bottom: 76px;
+  translate: -50% 0;
+  width: max-content;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 9px 8px 9px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--alert);
+  transition:
+    opacity 0.5s ease,
+    translate 0.5s ease;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice p {
+  padding-top: 2px;
+  user-select: text;
+}
+
+/* --------------------------------------------------------------------- panels */
+
+.panel {
+  --radius: 20px;
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  border: 0;
+  padding: 14px;
+  color: var(--ink);
+  background: linear-gradient(180deg, rgb(40 24 18 / 0.5), rgb(20 12 9 / 0.62));
+  -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
+  backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
+  overflow: visible;
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    overlay 0.18s allow-discrete,
+    display 0.18s allow-discrete;
+}
+
+.panel:popover-open {
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .panel:popover-open {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+.panel::backdrop {
+  background: transparent;
+}
+
+.panel h2 {
+  font-size: 12.5px;
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+
+.panel-note {
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--ink-dim);
+  line-height: 1.4;
+}
+
+.panel-note:empty {
+  display: none;
+}
+
+.panel-note.bad {
+  color: var(--alert);
+}
+
+.panel-note.good {
+  color: #b9f0b4;
+}
+
+#timer-panel {
+  width: 262px;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.presets label {
+  position: relative;
+}
+
+.presets input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.presets span,
+.presets button {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 13px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.presets label:hover span,
+.presets button:hover {
+  background: rgb(255 255 255 / 0.16);
+}
+
+.presets input:checked + span {
+  background: rgb(255 255 255 / 0.9);
+  color: #24140c;
+  box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.5);
+}
+
+.presets input:focus-visible + span {
+  outline: 2px solid rgb(255 200 140 / 0.9);
+  outline-offset: 2px;
+}
+
+.custom-time {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.custom-time label {
+  font-size: 12px;
+  color: var(--ink-dim);
+  width: 46px;
+}
+
+input[type='text'],
+input[type='password'] {
+  min-width: 0;
+  flex: 1;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: rgb(0 0 0 / 0.28);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  font-size: 12.5px;
+  user-select: text;
+}
+
+input::placeholder {
+  color: var(--ink-faint);
+}
+
+input:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px rgb(255 190 120 / 0.75);
+}
+
+.custom-time.active input {
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1.5px rgb(255 255 255 / 0.85);
+}
+
+.custom-time.invalid input {
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px rgb(255 140 100 / 0.9);
+}
+
+.small-button {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgb(255 255 255 / 0.12);
+  box-shadow: inset 0 1px 0.5px rgb(255 255 255 / 0.25);
+  transition: background 0.15s;
+}
+
+.small-button:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+
+.small-button.primary {
+  background: rgb(255 255 255 / 0.9);
+  color: #24140c;
+}
+
+.small-button.primary:hover {
+  background: #fff;
+}
+
+.small-button:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.settings {
+  width: 318px;
+}
+
+.settings > .panel-note:first-of-type {
+  margin: -6px 0 10px;
+}
+
+.servers {
+  margin-bottom: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 9px;
+}
+
+.field > span {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.field em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.field input {
+  flex: none;
+  width: 100%;
+}
+
+.server-check {
+  min-height: 1.4em;
+}
+
+.panel-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* -------------------------------------------------------------------- narrow */
+
+@media (max-width: 600px) {
+  .readout {
+    min-width: 0;
+    max-width: 150px;
+  }
+
+  .thermometer {
+    top: 10px;
+    right: 10px;
+    scale: 0.85;
+    transform-origin: top right;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thermometer .column,
+  .dock,
+  .notice,
+  .panel {
+    transition: none;
+  }
+}
