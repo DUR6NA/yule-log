@@ -12,7 +12,7 @@
 
 !define MUI_WELCOMEPAGE_TITLE "Winter is coming to the Midwest."
 !define MUI_WELCOMEPAGE_TITLE_3LINES
-!define MUI_WELCOMEPAGE_TEXT "Yule Log is a fireplace that runs on your graphics card. A local AI model writes Christmas carols, one after another, and every word it writes goes on the fire.$\r$\n$\r$\nYou'll need LM Studio (or another local OpenAI-compatible server) and a model to burn. Gemma 4 E4B works great. You pick your server and model in Settings the first time you light it.$\r$\n$\r$\nClick Next to bring in the firewood."
+!define MUI_WELCOMEPAGE_TEXT "Yule Log is a fireplace that runs on your graphics card. A local AI model writes Christmas carols, one after another, and every word it writes goes on the fire.$\r$\n$\r$\nYou'll need a model running on your computer in LM Studio or another OpenAI-compatible server. Connect Yule Log to it in Settings the first time you light the fire.$\r$\n$\r$\nClick Next to bring in the firewood."
 
 !define MUI_FINISHPAGE_TITLE "The firewood is stacked."
 !define MUI_FINISHPAGE_TITLE_3LINES

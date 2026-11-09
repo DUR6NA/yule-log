@@ -1,4 +1,4 @@
-//! What Gemma is asked to write. Each carol gets a random style and subject so an
+//! What the model is asked to write. Each carol gets a random style and subject so an
 //! endless run doesn't collapse into the same song forty times. Nobody reads the
 //! lyrics: they're burned for heat and thrown away.
 

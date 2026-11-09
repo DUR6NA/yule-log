@@ -30,7 +30,7 @@
     "targets": [
       "nsis"
     ],
-    "shortDescription": "A Yule log heated by Gemma writing Christmas carols",
+    "shortDescription": "A Yule log heated by a local AI model writing Christmas carols",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

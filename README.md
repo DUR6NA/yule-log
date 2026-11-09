@@ -79,9 +79,9 @@ When the model goes quiet, the fire doesn't just stop. It *settles*: glowing cra
 
 ## Bring your own brain.
 
-Yule Log works with [LM Studio](https://lmstudio.ai) and any local server that speaks the OpenAI API: Ollama, llama.cpp, Jan, vLLM, and friends.
+Yule Log doesn't come with a model, and it doesn't pick one for you. Run whatever model you like on your own machine with [LM Studio](https://lmstudio.ai), [Ollama](https://ollama.com), llama.cpp, Jan, vLLM, or anything else that speaks the OpenAI API, then connect Yule Log to it.
 
-We recommend **Gemma 4 E4B**. It writes Wisconsin polkas about thermostat wars, Motown numbers about lake-effect snow, and barbershop-quartet tributes to tater tot hotdish, in 14 musical styles across a whole pile of Midwestern subjects. Santa gets stuck in a snowdrift outside Fargo. The Packers play on Christmas Day. Somebody shovels the neighbor's walk before they wake up.
+Whatever you run gets the same brief: Wisconsin polkas about thermostat wars, Motown numbers about lake-effect snow, and barbershop-quartet tributes to tater tot hotdish, in 14 musical styles across a whole pile of Midwestern subjects. Santa gets stuck in a snowdrift outside Fargo. The Packers play on Christmas Day. Somebody shovels the neighbor's walk before they wake up.
 
 Every carol is completely original. Every carol is completely unread.
 
@@ -96,19 +96,19 @@ Every carol is completely original. Every carol is completely unread.
 - **Auto-off, on by default.** Every fire gets a timer, 15 minutes unless you choose otherwise. Burning forever only happens if you pick **Never**, and then that's between you and your power company.
 - **Close the window, the fire goes out.** The dropped connection makes LM Studio stop generating on the spot (`Client disconnected. Stopping generation...` in its log).
 - **Portion control.** Each carol is capped at 700 tokens.
-- **We removed the thinking.** Gemma's hidden "thinking" is turned off. It took courage.
+- **We removed the thinking.** Models are asked to skip their hidden "thinking" and get straight to singing. It took courage.
 - **A polite houseguest.** The fire draws at most 60 fps (20 once it's out), so it shares the GPU: about 52 tok/s with the fire on screen versus 60 without.[^bench]
 
 ## Tech Specs
 
-| | |
+| | **Yule Log** |
 | --- | --- |
 | **Fuel** | Tokens, from any OpenAI-compatible local model |
-| **Recommended fuel** | Gemma 4 E4B |
+| **Model** | Yours. Not included. |
 | **Heat output** | Your GPU's power draw × 3.412 BTU/h |
 | **Carol length** | Up to 700 tokens |
 | **Musical styles** | 14, from traditional church carol to Wisconsin polka |
-| **Thinking** | Off |
+| **Thinking** | Skipped (if your model listens) |
 | **Frame rate** | Up to 60 fps lit, 20 fps as embers |
 | **Auto-off** | 15m, 30m, 1h, 2h, custom up to 7 days, or Never |
 | **Thermometer** | °F, °C and BTU/h (NVIDIA GPUs) |
@@ -131,13 +131,13 @@ Grab the newest installer from **[Releases](https://github.com/DUR6NA/yule-log/r
 
 ## Setup is magical.
 
-Three steps. Zero IP addresses.
+Three steps. Zero IP addresses. Zero models included.
 
-1. In [LM Studio](https://lmstudio.ai), download `google/gemma-4-e4b` and start the server (Developer tab, port 1234). Leave **Just-in-Time Model Loading** on (LM Studio's default): Yule Log loads the model itself the first time you light the fire, and LM Studio unloads it after 10 idle minutes.
-2. In Yule Log, hit **Light**. Since the connection fields start out blank, Settings opens: click **LM Studio** to fill in its usual local address, pick the model from the list, and **Save**.
-3. Hit **Light** again. Feel the warmth.
+1. **Run a model locally.** Use [LM Studio](https://lmstudio.ai), [Ollama](https://ollama.com), llama.cpp, Jan, or any other app that serves a model over an OpenAI-compatible API, and start its server. Any chat model you like will do.
+2. **Connect it.** In Yule Log, hit **Light**. The connection fields start out blank, so Settings opens: pick your server from the presets (or type its address), choose a model from the list your server offers, add an API key if it wants one, and **Save**.
+3. **Hit Light again.** Feel the warmth.
 
-Using another server? Same panel: pick a preset (Ollama, llama.cpp, Jan) or type any address, plus an API key if your server wants one.
+> **LM Studio tip:** leave **Just-in-Time Model Loading** on (its default). Yule Log then loads your model the first time you light the fire, and LM Studio unloads it after 10 idle minutes.
 
 ## Intuitive by design.
 

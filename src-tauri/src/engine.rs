@@ -481,7 +481,7 @@ impl Engine {
             let fields = body.as_object_mut().unwrap();
             fields.insert("stream_options".into(), json!({ "include_usage": true }));
             fields.insert("top_k".into(), json!(64));
-            // Gemma 4 otherwise "thinks" first, sometimes for the whole budget.
+            // Reasoning models otherwise "think" first, sometimes for the whole budget.
             fields.insert("reasoning_effort".into(), json!("none"));
             // LM Studio unloads a just-in-time-loaded model after this long idle.
             fields.insert("ttl".into(), json!(MODEL_TTL_SECONDS));
