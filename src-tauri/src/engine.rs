@@ -77,6 +77,8 @@ struct Inner {
 pub struct PublicState {
     model: String,
     server: &'static str,
+    /// False until a server and model are picked in Settings.
+    configured: bool,
     running: bool,
     phase: &'static str,
     loading_model: bool,
@@ -149,6 +151,9 @@ impl Engine {
 
     /// The models a server offers, for the settings panel.
     pub async fn list_models(&self, settings: &Settings) -> Result<Vec<String>, String> {
+        if settings.base_url.is_empty() {
+            return Err("Pick a server above, or type its address.".into());
+        }
         let list = self.get_json(settings, &settings.api("/models")).await?;
         Ok(model_ids(&list))
     }
@@ -162,6 +167,7 @@ impl Engine {
         PublicState {
             model: inner.settings.model.clone(),
             server: inner.settings.server_name(),
+            configured: inner.settings.is_set_up(),
             running: burn.is_some(),
             phase: match burn.map(|b| b.phase) {
                 None => "out",
@@ -213,6 +219,9 @@ impl Engine {
             drop(inner);
             self.emit_state(&state);
             return Ok(state);
+        }
+        if !inner.settings.is_set_up() {
+            return Err("There's no model server set up yet. Open Settings (the gear) and pick your server and model.".into());
         }
 
         let (stop, out) = watch::channel(false);

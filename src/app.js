@@ -284,6 +284,7 @@ function statusLines() {
     if (s.phase === 'resting') return [`Carol ${s.carols} is done`, rate];
     return [`Writing carol ${n}`, rate];
   }
+  if (s.configured === false) return ['No firewood yet', 'Pick a model server in Settings'];
   if (s.error && !s.lastBurn?.tokens) return ['Couldn’t light the fire', `${shortModel(s.model)} on ${s.server}`];
   if (s.lastBurn) {
     const b = s.lastBurn;
@@ -369,6 +370,8 @@ async function call(cmd, args) {
 
 $('toggle').addEventListener('click', () => {
   if (app.state?.running) call('douse');
+  // Nothing to burn until a server is picked, so go straight to Settings.
+  else if (app.state?.configured === false) $('settings-panel').showPopover();
   else call('light', { minutes: app.autoOff });
 });
 
@@ -415,6 +418,11 @@ function settingsNote(text, tone = '') {
 
 async function checkServer() {
   const ticket = ++modelCheck;
+  if (!$('base-url').value.trim()) {
+    $('model-list').replaceChildren();
+    settingsNote('Pick a server above, or type its address.');
+    return;
+  }
   settingsNote('Checking the server…');
   try {
     const models = await invoke('list_models', { settings: settingsFromForm() });
