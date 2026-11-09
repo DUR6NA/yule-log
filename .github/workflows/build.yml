@@ -1,5 +1,6 @@
 # Every push to main builds Yule Log for Windows, Linux and macOS and publishes
-# the installers as a GitHub release.
+# the installers as a GitHub release. Pushes that only touch docs or dev
+# scripts don't change the app, so they don't cut a release.
 #
 # Version numbers: the major.minor in src-tauri/tauri.conf.json is yours to
 # bump, and the patch is the build number. So with "1.0.0" in the config,
@@ -10,6 +11,10 @@ name: Build & release
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'scripts/**'
   workflow_dispatch:
 
 # A newer push makes an unfinished build pointless; don't burn minutes on it.
