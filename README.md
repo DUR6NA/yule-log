@@ -7,6 +7,7 @@
 [![Download](https://img.shields.io/badge/download-latest%20release-e8590c)](https://github.com/DUR6NA/yule-log/releases/latest)
 ![Windows, macOS, Linux](https://img.shields.io/badge/available%20in-Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-8b4513)
 ![Fuel: tokens](https://img.shields.io/badge/fuel-tokens-ff922b)
+[![License: MIT](https://img.shields.io/badge/license-MIT-a0522d)](LICENSE)
 
 ![Yule Log at full roar: carol 75, 21,786 tokens burned at 41 tok/s, the thermometer reading 354 BTU/h](docs/hearth.jpg)
 
@@ -168,6 +169,10 @@ To work on the fire without a model, serve `src/` with any static file server an
 - `src/` is the frontend, plain files with no bundler: `fire.js` (the simulation), `glass.js` (the liquid-glass refraction), `app.js` (everything else).
 - `src-tauri/src/` is the Rust side: `engine.rs` runs the fire and talks to the model server, `settings.rs` stores the settings, `gpu.rs` reads the GPU, `carols.rs` has the prompts.
 - The `LMSTUDIO_URL` and `MODEL` environment variables prefill the settings, handy while developing. On Windows, `scripts\dev-run.bat` is a shortcut for `npm run dev`.
+
+## License
+
+[MIT](LICENSE). Fork it, remix it, keep your own house warm with it.
 
 ---
 

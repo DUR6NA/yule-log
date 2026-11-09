@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "A Yule log heated by a local LLM writing Christmas carols.",
+  "license": "MIT",
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",

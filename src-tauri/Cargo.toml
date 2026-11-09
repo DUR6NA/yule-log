@@ -2,6 +2,7 @@
 name = "yule-log"
 version = "1.0.0"
 description = "A Yule log heated by a local LLM writing Christmas carols"
+license = "MIT"
 edition = "2021"
 
 [build-dependencies]
