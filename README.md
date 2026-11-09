@@ -181,4 +181,4 @@ To work on the fire without a model, serve `src/` with any static file server an
 
 [^forever]: "Forever" means until the auto-off timer runs out, 15 minutes by default. **Never** is available for the brave.
 [^watts]: Board power as reported by NVIDIA's driver, summed across your GPUs. Actual coziness depends on your room, your GPU, and your relationship with your power company.
-[^bench]: Measured on an RTX 4060 Ti, in a living room, in December. Your tokens may vary.
+[^bench]: Measured on an RTX 4060 Ti in November. Your tokens may vary.
