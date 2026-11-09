@@ -109,7 +109,7 @@ npm run dev     # run the app
 npm run build   # release app and installer for this platform
 ```
 
-On Windows, `run-yule-log.bat` launches the release build if there is one, or falls back to dev mode.
+On Windows there's a dev-only shortcut for testing your changes: `scripts\dev-run.bat` starts dev mode, and `scripts\dev-run.bat release` compiles a release build of the current code (no installer) and launches it. It isn't part of the app and never ends up in an installer.
 
 To look at the fire without the app (or a model), serve `src/` with any static file server and open `index.html?fire=0.9`. Any level from 0 (embers) to 1 (roaring) works.
 
@@ -118,6 +118,7 @@ To look at the fire without the app (or a model), serve `src/` with any static f
 - `src/` is the frontend, plain files with no bundler: `fire.js` (the simulation), `glass.js` (the liquid-glass refraction), `app.js` (everything else).
 - `src-tauri/src/` is the Rust side: `engine.rs` runs the fire and talks to the model server, `settings.rs` stores the server settings, `gpu.rs` reads the GPU, `carols.rs` has the prompts (14 musical styles × a pile of Midwestern subjects).
 - `src-tauri/installer/` holds the Windows installer's art and theme (`hooks.nsh`).
+- `scripts/` is dev tooling only. Installers contain just the compiled app and `src/`, so nothing in here ships.
 - Before any settings are saved, the `LMSTUDIO_URL` and `MODEL` environment variables set the defaults.
 
 ## 🏭 The elves (CI)
